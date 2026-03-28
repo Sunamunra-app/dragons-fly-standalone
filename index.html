@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Dragon's Fly</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+        
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            border: 4px solid #0f3460;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+            z-index: 20;
+        }
+        
+        #gameOver button {
+            margin-top: 20px;
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        #gameOver button img {
+            display: block;
+            width: 320px;
+            height: auto;
+        }
+        
+        #gameOver button:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+        
+        #gameOver button:active {
+            transform: scale(0.95);
+        }
+        
+        #startScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            overflow: hidden;
+        }
+        
+        #startScreen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('dragon_background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -2;
+        }
+        
+        #startScreen::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        #startScreen button {
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.2s;
+            opacity: 0.5;
+        }
+        
+        #startScreen button:disabled {
+            cursor: wait;
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+        
+        #startScreen button:not(:disabled) {
+            opacity: 1;
+        }
+        
+        #startScreen button img {
+            display: block;
+            width: 280px;
+            height: auto;
+        }
+        
+        #startScreen button:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+        
+        #startScreen button:active {
+            transform: scale(0.95);
+        }
+        
+        #introScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            animation: fadeOutIntro 1s ease-in-out 4s forwards;
+        }
+        
+        @keyframes fadeOutIntro {
+            0% {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            100% {
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+        
+        #introScreen img {
+            max-width: 80vw;
+            max-height: 60vh;
+            opacity: 0;
+            animation: logoFadeInOut 5s ease-in-out forwards;
+        }
+        
+        @keyframes logoFadeInOut {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1200" height="600"></canvas>
+        
+        <div id="introScreen">
+            <img src="game_logo.png" alt="Dragon's Fly">
+        </div>
+        
+        <div id="startScreen">
+            <button id="startBtn" disabled><img src="play_button.png" alt="Играть"></button>
+        </div>
+        
+        <div id="gameOver">
+            <button id="restartBtn"><img src="restart_button.png" alt="Играть снова"></button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
