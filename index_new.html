@@ -2,16 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <title>Dragon's Fly</title>
-    
     <!-- Yandex.RTB -->
     <script>window.yaContextCb=window.yaContextCb||[]</script>
     <script src="https://yandex.ru/ads/system/context.js" async></script>
-    
     <style>
         * {
             margin: 0;
@@ -19,109 +16,36 @@
             box-sizing: border-box;
         }
         
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            overscroll-behavior: none;
-        }
-        
         body {
             background: #1a1a2e;
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             font-family: 'Courier New', monospace;
-            
-            /* Запрет выделения текста и изображений */
+            overflow: hidden;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            
-            /* Запрет перетаскивания изображений */
-            -webkit-user-drag: none;
-            -khtml-user-drag: none;
-            -moz-user-drag: none;
-            -o-user-drag: none;
-            user-drag: none;
-            
-            /* Блокировка жестов */
             touch-action: none;
-            -ms-touch-action: none;
-        }
-        
-        /* Запрет контекстного меню и выделения для всех элементов */
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-user-drag: none;
-            user-drag: none;
-        }
-        
-        img {
-            pointer-events: none;
-            -webkit-user-drag: none;
-            -khtml-user-drag: none;
-            -moz-user-drag: none;
-            -o-user-drag: none;
-            user-drag: none;
-            -webkit-touch-callout: none;
-        }
-        
-        canvas {
-            -webkit-user-drag: none;
-            -khtml-user-drag: none;
-            -moz-user-drag: none;
-            -o-user-drag: none;
-            user-drag: none;
-            -webkit-touch-callout: none;
         }
         
         #gameContainer {
             position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* Поддержка безопасных зон для iOS */
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            max-width: 100vw;
+            max-height: 100vh;
         }
         
         canvas {
             display: block;
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
             border: 4px solid #0f3460;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            object-fit: contain;
-        }
-        
-        /* Адаптация для мобильных в альбомной ориентации */
-        @media (orientation: landscape) and (max-height: 600px) {
-            canvas {
-                max-height: 90vh;
-                border-width: 2px;
-            }
-        }
-        
-        /* Адаптация для мобильных в портретной ориентации */
-        @media (orientation: portrait) {
-            canvas {
-                max-width: 95vw;
-                border-width: 2px;
-            }
         }
         
         #gameOver {
@@ -149,7 +73,7 @@
         
         #gameOver button img {
             display: block;
-            width: min(320px, 80vw);
+            width: 320px;
             height: auto;
         }
         
@@ -166,8 +90,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -223,16 +147,16 @@
         
         #startScreen button img {
             display: block;
-            width: min(280px, 70vw);
+            width: 280px;
             height: auto;
         }
         
-        #startScreen button:hover:not(:disabled) {
+        #startScreen button:hover {
             transform: scale(1.05);
             filter: brightness(1.2);
         }
         
-        #startScreen button:active:not(:disabled) {
+        #startScreen button:active {
             transform: scale(0.95);
         }
         
@@ -240,8 +164,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: #000;
             display: flex;
             justify-content: center;
@@ -286,13 +210,6 @@
                 transform: scale(1.05);
             }
         }
-        
-        /* Скрытие Яндекс рекламы на мобильных если мешает */
-        @media (max-width: 768px) {
-            #yandex_rtb_R-A-18977770-42 {
-                display: none;
-            }
-        }
     </style>
 </head>
 <body>
@@ -312,69 +229,36 @@
         </div>
     </div>
     
-    <!-- Yandex Games SDK -->
-    <script src="https://yandex.ru/games/sdk/v2"></script>
-    
-    <!-- VK Bridge SDK -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    
-    <!-- Game Modules -->
-    <script src="audioManager.js"></script>
-    <script src="levelsManager.js"></script>
-    <script src="sdkManager.js"></script>
     <script src="game.js"></script>
-    <script src="gamePatch.js"></script>
-    
-    <!-- Yandex.RTB Floor Ads -->
-    <script>
-    window.yaContextCb.push(() => {
-        Ya.Context.AdvManager.render({
-            "blockId": "R-A-18977770-39",
-            "type": "floorAd",
-            "platform": "desktop"
-        })
+    <!-- Yandex.RTB R-A-18977770-39 -->
+<script>
+window.yaContextCb.push(() => {
+    Ya.Context.AdvManager.render({
+        "blockId": "R-A-18977770-39",
+        "type": "floorAd",
+        "platform": "desktop"
     })
-    </script>
-    
-    <script>
-    window.yaContextCb.push(() => {
-        Ya.Context.AdvManager.render({
-            "blockId": "R-A-18977770-40",
-            "type": "floorAd",
-            "platform": "touch"
-        })
+})
+</script>
+<!-- Yandex.RTB R-A-18977770-40 -->
+<script>
+window.yaContextCb.push(() => {
+    Ya.Context.AdvManager.render({
+        "blockId": "R-A-18977770-40",
+        "type": "floorAd",
+        "platform": "touch"
     })
-    </script>
-    
-    <!-- Yandex.RTB Banner -->
-    <div id="yandex_rtb_R-A-18977770-42"></div>
-    <script>
-    window.yaContextCb.push(() => {
-        Ya.Context.AdvManager.render({
-            "blockId": "R-A-18977770-42",
-            "renderTo": "yandex_rtb_R-A-18977770-42"
-        })
+})
+</script>
+<!-- Yandex.RTB R-A-18977770-42 -->
+<div id="yandex_rtb_R-A-18977770-42"></div>
+<script>
+window.yaContextCb.push(() => {
+    Ya.Context.AdvManager.render({
+        "blockId": "R-A-18977770-42",
+        "renderTo": "yandex_rtb_R-A-18977770-42"
     })
-    </script>
-    
-    <script>
-    // Блокировка контекстного меню
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    
-    // Блокировка перетаскивания
-    document.addEventListener('dragstart', e => e.preventDefault());
-    
-    // Блокировка долгого нажатия на iOS
-    document.addEventListener('touchstart', e => {
-        if (e.target.tagName === 'IMG' || e.target.tagName === 'CANVAS') {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    
-    // Блокировка жестов масштабирования
-    document.addEventListener('gesturestart', e => e.preventDefault());
-    document.addEventListener('gesturechange', e => e.preventDefault());
-    document.addEventListener('gestureend', e => e.preventDefault());
-    </script>
+})
+</script>
 </body>
 </html>

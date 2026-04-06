@@ -1,0 +1,300 @@
+// Dragon Runner Game - Pixel Art Edition
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+        
+        // Game state
+        this.gameState = 'start'; // start, playing, gameover
+        this.gamePausedForAd = false;  // Пауза для рекламы
+        this.lives = 3;
+        this.eggsCollected = 0;
+        this.bestScore = 0;  // Лучший результат (по количеству яиц)
+        this.timeOfDay = 0; // 0-1 (0=day, 0.5=sunset, 1=night)
+        this.dayNightSpeed = 0.00007; // Уменьшено для длительных фаз (~2 минуты каждая)
+        
+        // VK Integration
+        this.vkBridge = null;
+        this.isVK = false;
+        this.vkUserInfo = null;
+        
+        // Yandex Games Integration
+        this.yandexSDK = null;
+        this.isYandex = false;
+        
+        // Реклама (VK + Yandex)
+        this.gamesPlayedCount = 0;  // Счётчик игр
+        this.showAdEvery = 3;  // Показывать рекламу каждые 3 игры
+        this.adShownThisSession = false;  // Показана ли реклама в этой сессии
+        
+        // Система загрузки спрайтов
+        this.totalSprites = 0;      // Общее количество спрайтов для загрузки
+        this.loadedSprites = 0;     // Загружено спрайтов
+        this.allSpritesLoaded = false;  // Все спрайты загружены
+        
+        // Dragon sprite sheet
+        this.totalSprites++;  // Считаем спрайт дракона
+        this.dragonSprite = new Image();
+        this.dragonSprite.src = 'dragon_spritesheet.png';
+        this.dragonSpriteLoaded = false;
+        this.dragonSprite.onload = () => {
+            this.dragonSpriteLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // Egg sprite
+        this.totalSprites++;
+        this.eggSprite = new Image();
+        this.eggSprite.src = 'egg.png';
+        this.eggSpriteLoaded = false;
+        this.eggSprite.onload = () => {
+            this.eggSpriteLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // UI Icons - сердце и яйцо для интерфейса
+        this.totalSprites++;
+        this.heartIcon = new Image();
+        this.heartIcon.src = 'heart.png';
+        this.heartIconLoaded = false;
+        this.heartIcon.onload = () => {
+            this.heartIconLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        this.totalSprites++;
+        this.eggIcon = new Image();
+        this.eggIcon.src = 'egg_icon.png';
+        this.eggIconLoaded = false;
+        this.eggIcon.onload = () => {
+            this.eggIconLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // Apple sprite (яблоко для лечения)
+        this.totalSprites++;
+        this.appleSprite = new Image();
+        this.appleSprite.src = 'Apple.png';
+        this.appleSpriteLoaded = false;
+        this.appleSprite.onload = () => {
+            this.appleSpriteLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // Apple tree sprite (яблоня)
+        this.totalSprites++;
+        this.appleTreeSprite = new Image();
+        this.appleTreeSprite.src = 'Apple_tree.png';
+        this.appleTreeSpriteLoaded = false;
+        this.appleTreeSprite.onload = () => {
+            this.appleTreeSpriteLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // Arrow sprite (стрелы)
+        this.totalSprites++;
+        this.arrowSprite = new Image();
+        this.arrowSprite.src = 'Arrows.png';
+        this.arrowSpriteLoaded = false;
+        this.arrowSprite.onload = () => {
+            this.arrowSpriteLoaded = true;
+            this.loadedSprites++;
+            this.checkAllSpritesLoaded();
+        };
+        
+        // Cloud sprites (27 новых облаков в большем разрешении из Clouds big 2.zip)
+        this.cloudSprites = [];
+        this.cloudSpritesLoaded = 0;
+        this.cloudSpritesMeta = []; // Метаданные облаков (ширина, высота)
+        
+        // Загружаем 27 облаков (индексы 2-28)
+        this.totalSprites += 27;  // 27 облаков
+        for (let i = 2; i <= 28; i++) {
+            const cloud = new Image();
+            cloud.src = `cloud-${i}.png`;
+            cloud.onload = () => {
+                this.cloudSpritesLoaded++;
+                this.loadedSprites++;
+                this.checkAllSpritesLoaded();
+                // Сохраняем реальные размеры облака
+                this.cloudSpritesMeta.push({
+                    width: cloud.naturalWidth,
+                    height: cloud.naturalHeight
+                });
+            };
+            this.cloudSprites.push(cloud);
+        }
+        
+        // Rock sprites - ДВА ТИПА КАМНЕЙ
+        // Big rocks (медленные, 3 выстрела) - 5 вариантов
+        this.rockBigSprites = [];
+        this.rockBigSpritesLoaded = 0;
+        this.rockBigSpritesMeta = []; // Метаданные больших камней
+        this.totalSprites += 5;  // 5 больших камней
+        for (let i = 1; i <= 5; i++) {
+            const rock = new Image();
+            const index = i - 1; // Индекс в массиве (0-4)
+            rock.src = `rock-big-${i}.png`;
+            rock.onload = () => {
+                this.rockBigSpritesLoaded++;
+                this.loadedSprites++;
+                this.checkAllSpritesLoaded();
+                // Сохраняем метаданные по правильному индексу
+                this.rockBigSpritesMeta[index] = {
+                    width: rock.naturalWidth,
+                    height: rock.naturalHeight
+                };
+            };
+            this.rockBigSprites.push(rock);
+        }
+        
+        // Little rocks (быстрые, 1 выстрел) - 6 вариантов
+        this.rockLittleSprites = [];
+        this.rockLittleSpritesLoaded = 0;
+        this.rockLittleSpritesMeta = []; // Метаданные маленьких камней
+        this.totalSprites += 6;  // 6 маленьких камней
+        for (let i = 1; i <= 6; i++) {
+            const rock = new Image();
+            const index = i - 1; // Индекс в массиве (0-5)
+            rock.src = `rock-little-${i}.png`;
+            rock.onload = () => {
+                this.rockLittleSpritesLoaded++;
+                this.loadedSprites++;
+                this.checkAllSpritesLoaded();
+                // Сохраняем метаданные по правильному индексу
+                this.rockLittleSpritesMeta[index] = {
+                    width: rock.naturalWidth,
+                    height: rock.naturalHeight
+                };
+            };
+            this.rockLittleSprites.push(rock);
+        }
+        
+        // Sound effects (ВСЕ ФАЙЛЫ КОНВЕРТИРОВАНЫ В MP3 для совместимости с iOS/iPad)
+        this.sounds = {
+            fly: new Audio('sound_fly.mp3'),
+            fireball: new Audio('sound_fireball.mp3'),
+            egg: new Audio('sound_egg.mp3'),
+            break: new Audio('sound_break.mp3'),
+            arrowBreak: new Audio('sound_arrow_break.mp3')  // Звук разлома стрел
+        };
+        
+        // ПУЛ ЗВУКОВ для мгновенного воспроизведения (без задержек)
+        // Создаём несколько копий каждого звука, чтобы они могли играть одновременно
+        this.soundPool = {
+            fireball: [],
+            egg: [],
+            break: [],
+            arrowBreak: []  // Пул для звуков стрел
+        };
+        
+        // Создаём по 5 копий каждого звука
+        for (let i = 0; i < 5; i++) {
+            this.soundPool.fireball.push(new Audio('sound_fireball.mp3'));
+            this.soundPool.egg.push(new Audio('sound_egg.mp3'));
+            this.soundPool.break.push(new Audio('sound_break.mp3'));
+            this.soundPool.arrowBreak.push(new Audio('sound_arrow_break.mp3'));
+        }
+        
+        // Устанавливаем громкость для всех звуков в пуле
+        this.soundPool.fireball.forEach(s => s.volume = 0.5);
+        this.soundPool.egg.forEach(s => s.volume = 0.7);
+        this.soundPool.break.forEach(s => s.volume = 0.6);
+        this.soundPool.arrowBreak.forEach(s => s.volume = 0.6);
+        
+        // Индексы текущего звука в пуле (для ротации)
+        this.soundPoolIndex = {
+            fireball: 0,
+            egg: 0,
+            break: 0,
+            arrowBreak: 0
+        };
+        
+        // Фоновая музыка
+        this.bgMusic = new Audio('background_music.mp3');
+        this.bgMusic.loop = true;
+        this.bgMusic.volume = 0.3; // Тише чем звуковые эффекты
+        this.musicEnabled = true; // Музыка включена по умолчанию
+        
+        // Звук ветра (фоновый эмбиент)
+        this.windSound = new Audio('wind.mp3');
+        this.windSound.loop = true;
+        this.windSound.volume = 0.2; // Тихий фоновый звук
+        
+        // Громкость звуков
+        this.sounds.fly.volume = 0.5;
+        this.sounds.fireball.volume = 0.5;
+        this.sounds.egg.volume = 0.7;
+        this.sounds.break.volume = 0.6;
+        
+        // Звук полёта с петлёй
+        this.sounds.fly.loop = true;
+        // Скорость звука полёта = скорость анимации дракона (0.22)
+        // Но для звука нужно больше, иначе будет очень медленно
+        // Попробуем 1.2x для синхронизации с взмахами крыльев
+        this.sounds.fly.playbackRate = 1.2;
+        
+        // Флаг инициализации звуков (для iOS/iPad)
+        this.soundsInitialized = false;
+        
+        // Система deltaTime для одинаковой скорости на всех устройствах
+        this.lastTime = performance.now();
+        this.targetFPS = 60; // Целевой FPS
+        this.deltaTime = 0;
+        this.maxFPS = 60; // Максимальный FPS (оптимизация)
+        this.frameTime = 1000 / this.maxFPS; // Минимальное время между кадрами
+        
+        // Sprite sheet settings (4x4 grid, 16 frames total)
+        // Новый дракон из GIF: каждый кадр 800x450px (пропорции ~1.78:1)
+        this.spriteSheet = {
+            frameWidth: 800,
+            frameHeight: 450,
+            cols: 4,
+            rows: 4,
+            totalFrames: 16
+        };
+        
+        // Player (Dragon)
+        // УВЕЛИЧЕН В 1.2 РАЗА: 533x300 -> 640x360
+        this.player = {
+            x: 0,  // Плотно к левому краю
+            y: this.height / 2,
+            width: 640,  // 533 * 1.2
+            height: 360, // 300 * 1.2
+            velocityY: 0,
+            velocityX: 0,
+            targetX: 0,
+            gravity: 0.3,
+            jumpPower: -6,
+            maxVelocity: 12,
+            damping: 0.92,
+            animFrame: 0,
+            animSpeed: 0.22,
+            animTimer: 0,
+            // Система мигания при получении урона (как в Mario)
+            invincible: false,
+            invincibleTime: 0,
+            invincibleDuration: 90, // 90 кадров = ~1.5 секунды
+            blinkInterval: 4 // Мигать каждые 4 кадра
+        };
+        
+        // Управление зажатием
+        this.touchHolding = {
+            left: false,  // Зажата левая сторона (подъем)
+            right: false  // НЕ ИСПОЛЬЗУЕТСЯ - стрельба по тапу
+        };
+        
+        // СИСТЕМА ЗАРЯДА ФАЕРБОЛОВ (0-100)
+        this.fireballCharge = 100; // Текущий заряд
+        this.fireballChargeMax = 100; // Максимальный заряд
+        this.fireballChargeCost = 8; // Стоимость одного выстрела (уменьшено с 12 до 8)
+        this.fireballChargeRegenRate = 0.4; // Скорость восстановления за кадр (увеличено с 0.2 до 0.4)
+        this.fireballCooldown = 0; // Кулдаун между выстрелами (в кадрах)
