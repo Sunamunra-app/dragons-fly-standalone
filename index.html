@@ -85,33 +85,32 @@
         
         #gameContainer {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Поддержка безопасных зон для iOS */
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            /* Поддержка безопасных зон для iOS (notch) */
+            padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
         }
         
         canvas {
             display: block;
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
             image-rendering: pixelated;
             image-rendering: -moz-crisp-edges;
             image-rendering: crisp-edges;
             border: 4px solid #0f3460;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-            object-fit: contain;
+            /* Canvas будет масштабироваться через JavaScript */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         
         /* Адаптация для мобильных в альбомной ориентации */
         @media (orientation: landscape) and (max-height: 600px) {
             canvas {
-                max-height: 90vh;
                 border-width: 2px;
             }
         }
@@ -119,7 +118,6 @@
         /* Адаптация для мобильных в портретной ориентации */
         @media (orientation: portrait) {
             canvas {
-                max-width: 95vw;
                 border-width: 2px;
             }
         }
@@ -297,7 +295,7 @@
 </head>
 <body>
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="1200" height="600"></canvas>
+        <canvas id="gameCanvas"></canvas>
         
         <div id="introScreen">
             <img src="game_logo.png" alt="Dragon's Fly">
@@ -322,6 +320,62 @@
     <script src="audioManager.js"></script>
     <script src="levelsManager.js"></script>
     <script src="sdkManager.js"></script>
+    
+    <!-- Canvas Auto-Resize Script -->
+    <script>
+    // Адаптивное масштабирование canvas под все устройства
+    (function() {
+        const canvas = document.getElementById('gameCanvas');
+        const container = document.getElementById('gameContainer');
+        
+        // Базовые размеры игры (логическое разрешение)
+        const GAME_WIDTH = 1200;
+        const GAME_HEIGHT = 600;
+        const ASPECT_RATIO = GAME_WIDTH / GAME_HEIGHT;
+        
+        function resizeCanvas() {
+            // Получаем размеры контейнера с учетом safe-area
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // Рассчитываем размер canvas с сохранением пропорций
+            let canvasWidth, canvasHeight;
+            
+            const containerRatio = containerWidth / containerHeight;
+            
+            if (containerRatio > ASPECT_RATIO) {
+                // Контейнер шире, ограничиваем по высоте
+                canvasHeight = containerHeight * 0.95; // 95% высоты
+                canvasWidth = canvasHeight * ASPECT_RATIO;
+            } else {
+                // Контейнер выше, ограничиваем по ширине
+                canvasWidth = containerWidth * 0.95; // 95% ширины
+                canvasHeight = canvasWidth / ASPECT_RATIO;
+            }
+            
+            // Устанавливаем размеры canvas (физические пиксели)
+            canvas.style.width = Math.floor(canvasWidth) + 'px';
+            canvas.style.height = Math.floor(canvasHeight) + 'px';
+            
+            // Устанавливаем логические размеры (игровое разрешение)
+            canvas.width = GAME_WIDTH;
+            canvas.height = GAME_HEIGHT;
+            
+            console.log(`📐 Canvas resized: ${Math.floor(canvasWidth)}×${Math.floor(canvasHeight)} (display), ${GAME_WIDTH}×${GAME_HEIGHT} (logical)`);
+        }
+        
+        // Resize при загрузке и изменении размера окна
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100); // Небольшая задержка для iOS
+        });
+        
+        // Первоначальный resize
+        resizeCanvas();
+    })();
+    </script>
+    
     <script src="game.js"></script>
     <script src="gamePatch.js"></script>
     
